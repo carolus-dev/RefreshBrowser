@@ -14,8 +14,24 @@ import time
 import queue
 import ctypes
 import threading
+import datetime
 import tkinter as tk
 from tkinter import ttk, messagebox
+
+# ── Expiración de licencia ────────────────────────────────────────────────────
+_EXPIRY = datetime.date(2027, 8, 23)
+
+def _check_expiry():
+    if datetime.date.today() > _EXPIRY:
+        _r = tk.Tk()
+        _r.withdraw()
+        messagebox.showerror(
+            "Licencia expirada",
+            f"Este programa expiró el {_EXPIRY.strftime('%d/%m/%Y')}.\n\n"
+            "Contacta a CarolusDev para renovar tu licencia."
+        )
+        _r.destroy()
+        sys.exit(0)
 
 try:
     import win32gui        # noqa: F401  (verificación de dependencias)
@@ -158,7 +174,7 @@ class RefreshBrowserApp:
 
         # ── Pie de autoría ──
         ttk.Label(
-            main, text="Developed by Carolus for Macura Internacional",
+            main, text="desarrollado por CarolusDev para Macura Internacional\n2026",
             foreground="#aaa", font=("Segoe UI", 8, "italic"), anchor="center"
         ).grid(row=8, column=0, columnspan=2, sticky="ew", pady=(12, 0))
 
@@ -379,6 +395,7 @@ class RefreshBrowserApp:
 
 # ── Punto de entrada ──────────────────────────────────────────────────────────
 def main():
+    _check_expiry()
     root = tk.Tk()
     try:
         ctypes.windll.shcore.SetProcessDpiAwareness(1)   # DPI awareness
