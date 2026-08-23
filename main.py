@@ -165,6 +165,12 @@ class RefreshBrowserApp:
                      state="readonly", values=CORNER_OPTIONS, width=22).grid(
             row=0, column=0, sticky="w")
 
+        self.sound_var = tk.BooleanVar(value=True)
+        self.sound_chk = ttk.Checkbutton(
+            pf, text="Reproducir tono de aviso", variable=self.sound_var
+        )
+        self.sound_chk.grid(row=1, column=0, sticky="w", pady=(6, 0))
+
         # ── Botón iniciar/detener ──
         self.toggle_btn = ttk.Button(main, text="Iniciar", command=self._toggle)
         self.toggle_btn.grid(row=5, column=0, columnspan=2,
@@ -236,6 +242,7 @@ class RefreshBrowserApp:
         state_combo = "disabled" if running else "readonly"
         self.interval_spin.config(state=state_spin)
         self.unit_combo.config(state=state_combo)
+        self.sound_chk.config(state=state_spin)
         self.toggle_btn.config(text="Detener" if running else "Iniciar")
 
     # ── Iniciar / Detener ─────────────────────────────────────────────────────
@@ -393,6 +400,7 @@ class RefreshBrowserApp:
             on_cancel=self._on_user_cancel,
             on_postpone=self._on_user_postpone,
             corner=self.corner_var.get(),
+            sound_enabled=self.sound_var.get(),
         )
 
     def _destroy_notifier(self):

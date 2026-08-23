@@ -68,3 +68,34 @@ def test_destroy_idempotent(tk_root, mocker):
     notifier.destroy()
 
     assert notifier._active is False
+
+
+def test_beep_starts_when_sound_enabled(tk_root, mocker):
+    mock_beep = mocker.patch.object(NotifierWindow, "_beep")
+    mock_thread = mocker.patch("notifier.threading.Thread")
+
+    NotifierWindow(
+        parent=tk_root,
+        seconds=5,
+        on_cancel=MagicMock(),
+        on_postpone=MagicMock(),
+        sound_enabled=True,
+    )
+
+    mock_thread.assert_called_once()
+    assert mock_thread.call_args[1]["target"] == mock_beep
+
+
+def test_beep_skipped_when_sound_disabled(tk_root, mocker):
+    mocker.patch.object(NotifierWindow, "_beep")
+    mock_thread = mocker.patch("notifier.threading.Thread")
+
+    NotifierWindow(
+        parent=tk_root,
+        seconds=5,
+        on_cancel=MagicMock(),
+        on_postpone=MagicMock(),
+        sound_enabled=False,
+    )
+
+    mock_thread.assert_not_called()

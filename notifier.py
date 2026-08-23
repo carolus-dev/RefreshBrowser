@@ -56,21 +56,24 @@ class NotifierWindow:
     on_cancel   : callable — llamado cuando el usuario cancela.
     on_postpone : callable — llamado cuando el usuario pospone.
     corner      : str   — posición en pantalla (ver CORNER_OPTIONS).
+    sound_enabled : bool — reproducir tono de aviso (default True).
     """
 
     def __init__(self, parent, seconds, on_cancel, on_postpone,
-                 corner="Inferior derecha"):
+                 corner="Inferior derecha", sound_enabled=True):
         self.parent      = parent
         self.seconds_left = seconds
         self.on_cancel   = on_cancel
         self.on_postpone = on_postpone
         self.corner      = corner
+        self.sound_enabled = sound_enabled
         self._active     = True
 
         self._build()
         self._position()
         self._tick()
-        threading.Thread(target=self._beep, daemon=True).start()
+        if self.sound_enabled:
+            threading.Thread(target=self._beep, daemon=True).start()
 
     # ------------------------------------------------------------------ build
     def _build(self):
@@ -161,7 +164,7 @@ class NotifierWindow:
 
     # ------------------------------------------------------------------ sound
     def _beep(self):
-        if not _SOUND_AVAILABLE:
+        if not self.sound_enabled or not _SOUND_AVAILABLE:
             return
         try:
             winsound.Beep(880, 180)
