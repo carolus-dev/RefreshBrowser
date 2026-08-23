@@ -10,6 +10,7 @@
 ###############################################################################
 
 import sys
+import os
 import time
 import queue
 import ctypes
@@ -54,6 +55,25 @@ POSTPONE_SECS = 300  # duración del posponer (5 minutos)
 MIN_INTERVAL  = WARN_SECS + 1   # intervalo mínimo permitido
 
 
+def _asset_path(filename: str) -> str:
+    """Ruta a un archivo en assets/ (compatible con PyInstaller)."""
+    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, "assets", filename)
+
+
+def _load_logo(max_size: int = 72) -> tk.PhotoImage | None:
+    """Carga el logo de Macura escalado para la cabecera."""
+    path = _asset_path("macura_logo.png")
+    if not os.path.isfile(path):
+        return None
+    img = tk.PhotoImage(file=path)
+    factor = max((img.width() + max_size - 1) // max_size,
+                 (img.height() + max_size - 1) // max_size, 1)
+    if factor > 1:
+        img = img.subsample(factor, factor)
+    return img
+
+
 def _fmt(secs: float) -> str:
     """Convierte segundos a MM:SS."""
     s = max(0, int(secs))
@@ -90,14 +110,19 @@ class RefreshBrowserApp:
         main = ttk.Frame(self.root, padding=14)
         main.grid(row=0, column=0, sticky="nsew")
 
-        # Título
+        # ── Cabecera: logo + título ──
+        self._logo_image = _load_logo(72)
+        if self._logo_image:
+            tk.Label(main, image=self._logo_image, borderwidth=0).grid(
+                row=0, column=0, columnspan=2, pady=(0, 6))
+
         ttk.Label(main, text="RefreshBrowser",
-                  font=("Segoe UI", 13, "bold")).grid(
-            row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))
+                  font=("Segoe UI", 13, "bold"), anchor="center").grid(
+            row=1, column=0, columnspan=2, sticky="ew", pady=(0, 10))
 
         # ── Navegadores ──
         bf = ttk.LabelFrame(main, text="Navegadores", padding=10)
-        bf.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+        bf.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(0, 8))
         self.browser_vars: dict[str, tk.BooleanVar] = {}
         defaults = {"Google Chrome", "Microsoft Edge"}
         for i, label in enumerate(BROWSERS):
@@ -109,7 +134,7 @@ class RefreshBrowserApp:
 
         # ── Intervalo ──
         ivf = ttk.LabelFrame(main, text="Intervalo de refresco", padding=10)
-        ivf.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+        ivf.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(0, 8))
 
         ttk.Label(ivf, text="Cada").grid(row=0, column=0, padx=(0, 6))
 
@@ -134,7 +159,7 @@ class RefreshBrowserApp:
 
         # ── Posición del aviso ──
         pf = ttk.LabelFrame(main, text="Posición del aviso flotante", padding=10)
-        pf.grid(row=3, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+        pf.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(0, 8))
         self.corner_var = tk.StringVar(value="Inferior derecha")
         ttk.Combobox(pf, textvariable=self.corner_var,
                      state="readonly", values=CORNER_OPTIONS, width=22).grid(
@@ -142,7 +167,7 @@ class RefreshBrowserApp:
 
         # ── Botón iniciar/detener ──
         self.toggle_btn = ttk.Button(main, text="Iniciar", command=self._toggle)
-        self.toggle_btn.grid(row=4, column=0, columnspan=2,
+        self.toggle_btn.grid(row=5, column=0, columnspan=2,
                              sticky="ew", pady=(4, 10))
 
         # ── Countdown ──
@@ -151,18 +176,18 @@ class RefreshBrowserApp:
             main, textvariable=self.countdown_var,
             font=("Segoe UI", 11, "bold"), anchor="center"
         )
-        self.countdown_lbl.grid(row=5, column=0, columnspan=2,
+        self.countdown_lbl.grid(row=6, column=0, columnspan=2,
                                 sticky="ew", pady=(0, 2))
 
         # ── Estado ──
         self.status_var = tk.StringVar(value="Detenido")
         ttk.Label(main, textvariable=self.status_var,
                   foreground="#888").grid(
-            row=6, column=0, columnspan=2, sticky="w")
+            row=7, column=0, columnspan=2, sticky="w")
 
         # ── Registro ──
         lf = ttk.LabelFrame(main, text="Registro", padding=6)
-        lf.grid(row=7, column=0, columnspan=2, sticky="nsew", pady=(8, 0))
+        lf.grid(row=8, column=0, columnspan=2, sticky="nsew", pady=(8, 0))
         self.log_text = tk.Text(
             lf, height=8, width=50, state="disabled",
             wrap="word", font=("Consolas", 9)
@@ -174,9 +199,16 @@ class RefreshBrowserApp:
 
         # ── Pie de autoría ──
         ttk.Label(
-            main, text="desarrollado por CarolusDev para Macura Internacional\n2026",
-            foreground="#aaa", font=("Segoe UI", 8, "italic"), anchor="center"
-        ).grid(row=8, column=0, columnspan=2, sticky="ew", pady=(12, 0))
+            main,
+            text=(
+                "Software desarrollado por CarolusDev\n"
+                "para uso exclusivo de Macura Internacional"
+            ),
+            foreground="#aaa",
+            font=("Segoe UI", 8, "italic"),
+            anchor="center",
+            justify="center",
+        ).grid(row=9, column=0, columnspan=2, sticky="ew", pady=(12, 0))
 
     # ── Estado ────────────────────────────────────────────────────────────────
     def _sync_selection(self):

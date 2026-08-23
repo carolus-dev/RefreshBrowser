@@ -10,7 +10,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('assets/macura_logo.png', 'assets')],
     hiddenimports=[
         'win32gui',
         'win32process',
