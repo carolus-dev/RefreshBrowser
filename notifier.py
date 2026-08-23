@@ -34,6 +34,17 @@ _GRAY    = "#636e72"
 _SUBTEXT = "#95a5a6"
 
 
+def corner_to_coords(corner, w, h, sw, sh, mg=20, tb=48):
+    """Calcula (x, y) para posicionar el aviso en una esquina de pantalla."""
+    coords = {
+        "Inferior derecha":   (sw - w - mg,     sh - h - mg - tb),
+        "Inferior izquierda": (mg,               sh - h - mg - tb),
+        "Superior derecha":   (sw - w - mg,     mg),
+        "Superior izquierda": (mg,               mg),
+    }
+    return coords.get(corner, coords["Inferior derecha"])
+
+
 class NotifierWindow:
     """
     Ventana flotante sin bordes que aparece N segundos antes del refresco.
@@ -131,16 +142,7 @@ class NotifierWindow:
         h  = self.win.winfo_reqheight()
         sw = self.win.winfo_screenwidth()
         sh = self.win.winfo_screenheight()
-        mg = 20   # margen desde el borde de pantalla
-        tb = 48   # altura aproximada de la barra de tareas de Windows
-
-        coords = {
-            "Inferior derecha":   (sw - w - mg,     sh - h - mg - tb),
-            "Inferior izquierda": (mg,               sh - h - mg - tb),
-            "Superior derecha":   (sw - w - mg,     mg),
-            "Superior izquierda": (mg,               mg),
-        }
-        x, y = coords.get(self.corner, coords["Inferior derecha"])
+        x, y = corner_to_coords(self.corner, w, h, sw, sh)
         self.win.geometry(f"+{x}+{y}")
 
     # ------------------------------------------------------------------- tick
